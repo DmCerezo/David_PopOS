@@ -7,6 +7,10 @@ rápido en una instalación limpia: paquetes, aplicaciones, IDEs y dotfiles.
 > personales. Los secretos viven en `.env` (ignorado por git) y en ficheros
 > `*.local` fuera del repositorio.
 
+📚 Documentación:
+[guía de uso y mantenimiento](docs/guia.md) ·
+[programas incluidos](docs/programas.md)
+
 ## Reconstruir el entorno
 
 En un Pop!_OS recién instalado:
@@ -67,6 +71,7 @@ terceros que tengas, porque algunos paquetes los necesitan.
 │   └── flatpak/*.list    # aplicaciones Flathub por categoría
 ├── dotfiles/
 │   └── home/             # se enlaza tal cual sobre $HOME
+├── docs/                 # guía y lista de programas
 ├── .github/workflows/    # escaneo de secretos en GitHub Actions
 ├── .pre-commit-config.yaml  # hook de gitleaks antes de cada commit
 ├── .env.example          # variables necesarias, sin valores
@@ -96,8 +101,9 @@ dentro de `$HOME` (por ejemplo `dotfiles/home/.config/foo/bar` →
 `~/.dotfiles-backup/<fecha>/`.
 
 La identidad de git no está en el repo: `.gitconfig` incluye
-`~/.gitconfig.local`, que `install.sh` crea a partir de `GIT_USER_NAME` y
-`GIT_USER_EMAIL` en `.env` si no existe.
+`~/.gitconfig.local`. Si ya tenías un `~/.gitconfig` con tu nombre y email,
+`install.sh` los copia ahí antes de sustituirlo; si no, lo crea a partir de
+`GIT_USER_NAME` y `GIT_USER_EMAIL` en `.env`.
 
 ## Secretos
 
