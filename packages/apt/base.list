@@ -1,0 +1,18 @@
+# Utilidades básicas del sistema. Un paquete por línea; '#' para comentarios.
+curl
+wget
+git
+gnupg
+ca-certificates
+unzip
+zip
+htop
+tree
+jq
+ripgrep
+fd-find
+fzf
+bat
+tmux
+vim
+xclip
