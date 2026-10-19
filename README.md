@@ -31,11 +31,35 @@ También puedes ejecutar solo algunos pasos:
 ./install.sh dotfiles     # enlaza los dotfiles en $HOME
 ```
 
+## Mantenerlo al día
+
+```bash
+./update.sh               # git pull + actualiza apt y flatpak + ./install.sh
+```
+
+Un solo comando trae los últimos cambios del repo, actualiza todo lo instalado
+e instala lo que se haya añadido a las listas.
+
+## Guardar lo que tienes instalado
+
+```bash
+./capture.sh              # escribe packages/*/captured.list
+git diff                  # revisa y mueve paquetes a su categoría si quieres
+git commit -am "Actualiza paquetes" && git push
+```
+
+`capture.sh` apunta los paquetes apt instalados a mano (sin los que trae
+Pop!_OS de serie) y las aplicaciones flatpak que aún no estén en ninguna lista.
+Solo guarda nombres de paquetes. También avisa de los repositorios apt de
+terceros que tengas, porque algunos paquetes los necesitan.
+
 ## Estructura
 
 ```
 .
-├── install.sh            # punto de entrada
+├── install.sh            # instala lo que falte (idempotente)
+├── update.sh             # actualiza el sistema y el entorno
+├── capture.sh            # guarda en las listas lo instalado en este PC
 ├── packages/
 │   ├── apt/*.list        # paquetes apt por categoría
 │   └── flatpak/*.list    # aplicaciones Flathub por categoría
