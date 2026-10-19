@@ -26,6 +26,7 @@ las listas y solo instalará lo que falte.
 También puedes ejecutar solo algunos pasos:
 
 ```bash
+./install.sh repos        # repositorios apt de terceros
 ./install.sh apt          # paquetes apt
 ./install.sh flatpak      # aplicaciones de Flathub
 ./install.sh dotfiles     # enlaza los dotfiles en $HOME
@@ -62,6 +63,7 @@ terceros que tengas, porque algunos paquetes los necesitan.
 ├── capture.sh            # guarda en las listas lo instalado en este PC
 ├── packages/
 │   ├── apt/*.list        # paquetes apt por categoría
+│   ├── apt/repos/        # repositorios apt de terceros
 │   └── flatpak/*.list    # aplicaciones Flathub por categoría
 ├── dotfiles/
 │   └── home/             # se enlaza tal cual sobre $HOME
@@ -74,6 +76,15 @@ terceros que tengas, porque algunos paquetes los necesitan.
 Cada fichero `.list` contiene un paquete por línea; `#` inicia un comentario.
 Para añadir una categoría nueva basta con crear otro `.list` en la carpeta
 correspondiente: `install.sh` lee todos.
+
+### Repositorios de terceros
+
+Algunos programas (VS Code, Chrome, GitHub CLI, Node.js, Antigravity, Claude
+Desktop) vienen de repositorios apt externos. Cada uno está en
+`packages/apt/repos/<nombre>.sources`, con su clave en una línea `# key: <url>`.
+`install.sh repos` añade solo los que no estén ya configurados en el sistema,
+así que en un PC donde ya existen no toca nada. El de Claude Desktop es un
+repositorio no oficial de la comunidad.
 
 ### Dotfiles
 

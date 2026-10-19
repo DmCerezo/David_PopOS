@@ -1,5 +1,3 @@
 # IDEs y herramientas de desarrollo (IDs de Flathub).
-com.visualstudio.code
-com.jetbrains.PyCharm-Community
-io.dbeaver.DBeaverCommunity
-rest.insomnia.Insomnia
+com.google.AndroidStudio
+io.github.shiftey.Desktop         # GitHub Desktop
