@@ -8,3 +8,14 @@ python3-venv
 pipx
 shellcheck
 direnv
+
+# Instalado en el PC actual.
+git-lfs
+gh                                # repo github-cli
+gcc-14
+openjdk-21-jdk
+nodejs                            # repo nodesource (Node 26)
+python3-rich
+android-sdk-platform-tools-common
+code                              # VS Code, repo vscode
+antigravity                       # repo antigravity

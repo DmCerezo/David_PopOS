@@ -5,7 +5,7 @@
 # que falta y solo enlaza los dotfiles que aún no apuntan a este repositorio.
 #
 # Uso:
-#   ./install.sh                 # todo: apt, flatpak y dotfiles
+#   ./install.sh                 # todo: repos, apt, flatpak y dotfiles
 #   ./install.sh apt dotfiles    # solo los pasos indicados
 #   ./install.sh --dry-run       # muestra qué haría, sin cambiar nada
 #   ./install.sh --help
@@ -16,7 +16,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGES_DIR="$REPO_DIR/packages"
 DOTFILES_DIR="$REPO_DIR/dotfiles/home"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
-ALL_STEPS=(apt flatpak dotfiles)
+ALL_STEPS=(repos apt flatpak dotfiles)
 DRY_RUN=0
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -57,6 +57,53 @@ load_env() {
     # shellcheck disable=SC1091
     . "$REPO_DIR/.env"
     set +a
+  fi
+}
+
+# Repositorios apt de terceros: cada packages/apt/repos/<nombre>.sources es un
+# fichero deb822 con una línea "# key: <url>" para su clave de firma. La clave
+# se guarda en /etc/apt/keyrings/<nombre>.gpg (lo que indica Signed-By).
+step_repos() {
+  log "Repositorios apt de terceros"
+  if ! command -v curl >/dev/null 2>&1 || ! command -v gpg >/dev/null 2>&1; then
+    run sudo apt-get install -y curl gnupg
+  fi
+  local src name key_url uri keyring dest changed=0
+  for src in "$PACKAGES_DIR"/apt/repos/*.sources; do
+    [[ -e "$src" ]] || continue
+    name="$(basename "$src" .sources)"
+    keyring="/etc/apt/keyrings/$name.gpg"
+    dest="/etc/apt/sources.list.d/$name.sources"
+    key_url="$(sed -n 's/^# key: *//p' "$src" | head -1)"
+    uri="$(sed -n 's/^URIs: *//p' "$src" | head -1)"
+    # Si el repositorio ya está configurado (por nosotros o a mano, en .list o
+    # .sources), no se toca: dos entradas con distinto Signed-By rompen apt.
+    if grep -rqsF -- "${uri%/}" /etc/apt/sources.list.d/; then
+      continue
+    fi
+    if [[ -n "$key_url" && ! -s "$keyring" ]]; then
+      log "Descargando clave de $name"
+      run sudo install -d -m 0755 /etc/apt/keyrings
+      if (( ! DRY_RUN )); then
+        local tmp
+        tmp="$(mktemp)"
+        curl -fsSL "$key_url" -o "$tmp" || die "No pude descargar la clave de $name ($key_url)"
+        # Algunas claves vienen en ASCII (armored) y otras ya en binario.
+        if grep -q -- '-----BEGIN PGP' "$tmp"; then
+          gpg --dearmor --yes -o "$tmp.gpg" "$tmp" && mv "$tmp.gpg" "$tmp"
+        fi
+        sudo install -m 0644 "$tmp" "$keyring"
+        rm -f "$tmp"
+      fi
+    fi
+    run sudo install -m 0644 "$src" "$dest"
+    ok "Repositorio $name configurado"
+    changed=1
+  done
+  if (( changed )); then
+    run sudo apt-get update
+  else
+    ok "Repositorios al día"
   fi
 }
 
@@ -107,6 +154,19 @@ step_flatpak() {
   (( count > 0 )) || ok "Todas las aplicaciones flatpak ya están instaladas"
 }
 
+# Antes de sustituir un ~/.gitconfig propio, guarda su identidad en
+# ~/.gitconfig.local para que git no se quede sin nombre ni email.
+keep_git_identity() {
+  local old="$1" local_cfg="$HOME/.gitconfig.local" key value
+  [[ -f "$local_cfg" ]] && return 0
+  for key in user.name user.email user.signingkey; do
+    value="$(git config --file "$old" --get "$key" || true)"
+    [[ -n "$value" ]] || continue
+    log "Guardando $key de tu ~/.gitconfig en ~/.gitconfig.local"
+    (( DRY_RUN )) || git config --file "$local_cfg" "$key" "$value"
+  done
+}
+
 # Enlaza cada fichero de dotfiles/home en la misma ruta relativa de $HOME.
 # Si ya existe un fichero distinto, se mueve a ~/.dotfiles-backup/<fecha>/.
 step_dotfiles() {
@@ -117,6 +177,9 @@ step_dotfiles() {
     dest="$HOME/$rel"
     if [[ -L "$dest" && "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]]; then
       continue
+    fi
+    if [[ "$rel" == ".gitconfig" && -f "$dest" && ! -L "$dest" ]]; then
+      keep_git_identity "$dest"
     fi
     if [[ -e "$dest" || -L "$dest" ]]; then
       run mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
@@ -144,7 +207,7 @@ main() {
     case "$arg" in
       -n|--dry-run) DRY_RUN=1 ;;
       -h|--help) usage; exit 0 ;;
-      apt|flatpak|dotfiles) steps+=("$arg") ;;
+      repos|apt|flatpak|dotfiles) steps+=("$arg") ;;
       *) die "Argumento desconocido: $arg (usa --help)" ;;
     esac
   done

@@ -16,3 +16,7 @@ bat
 tmux
 vim
 xclip
+rsync
+netcat-openbsd
+apt-transport-https
+software-properties-common
