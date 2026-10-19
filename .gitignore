@@ -1,0 +1,40 @@
+# --- Secretos: nunca deben subirse a este repositorio público ---
+.env
+.env.*
+!.env.example
+*.local
+.gitconfig.local
+
+# Claves SSH
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+*.pem
+*.key
+*.ppk
+known_hosts
+.ssh/
+
+# Claves y anillos GPG
+*.gpg
+*.asc
+*.kbx
+secring.*
+pubring.*
+trustdb.gpg
+.gnupg/
+
+# Tokens y credenciales
+*token*
+*secret*
+*credentials*
+.netrc
+.npmrc
+.pypirc
+.git-credentials
+
+# --- Varios ---
+.DS_Store
+*.swp
+*~
