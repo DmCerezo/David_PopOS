@@ -154,6 +154,19 @@ step_flatpak() {
   (( count > 0 )) || ok "Todas las aplicaciones flatpak ya están instaladas"
 }
 
+# Antes de sustituir un ~/.gitconfig propio, guarda su identidad en
+# ~/.gitconfig.local para que git no se quede sin nombre ni email.
+keep_git_identity() {
+  local old="$1" local_cfg="$HOME/.gitconfig.local" key value
+  [[ -f "$local_cfg" ]] && return 0
+  for key in user.name user.email user.signingkey; do
+    value="$(git config --file "$old" --get "$key" || true)"
+    [[ -n "$value" ]] || continue
+    log "Guardando $key de tu ~/.gitconfig en ~/.gitconfig.local"
+    (( DRY_RUN )) || git config --file "$local_cfg" "$key" "$value"
+  done
+}
+
 # Enlaza cada fichero de dotfiles/home en la misma ruta relativa de $HOME.
 # Si ya existe un fichero distinto, se mueve a ~/.dotfiles-backup/<fecha>/.
 step_dotfiles() {
@@ -164,6 +177,9 @@ step_dotfiles() {
     dest="$HOME/$rel"
     if [[ -L "$dest" && "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]]; then
       continue
+    fi
+    if [[ "$rel" == ".gitconfig" && -f "$dest" && ! -L "$dest" ]]; then
+      keep_git_identity "$dest"
     fi
     if [[ -e "$dest" || -L "$dest" ]]; then
       run mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
