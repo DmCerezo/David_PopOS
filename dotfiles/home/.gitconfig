@@ -1,0 +1,20 @@
+# ~/.gitconfig — enlazado desde David_PopOS/dotfiles/home.
+# La identidad (nombre/email) y cualquier dato personal van en
+# ~/.gitconfig.local, que NO está en el repositorio.
+
+[include]
+	path = ~/.gitconfig.local
+
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false
+[push]
+	autoSetupRemote = true
+[core]
+	editor = vim
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	lg = log --oneline --graph --decorate
